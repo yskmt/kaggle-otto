@@ -77,3 +77,15 @@ for i in range(N):
 logloss /= N
 
 print logloss
+
+
+print "writing the results to file..."
+submission_file = 'submission.csv'
+results = np.zeros((N,m+1), dtype=int)
+results[:,0] = np.array(range(1, N+1))
+results[:,1:] = target_prob
+
+header = 'id,Class_1,Class_2,Class_3,Class_4,'\
+         'Class_5,Class_6,Class_7,Class_8,Class_9'
+np.savetxt(submission_file, results, delimiter=',', header=header, fmt='%d',
+           comments='')
