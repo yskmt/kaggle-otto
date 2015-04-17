@@ -7,26 +7,37 @@ import random
 if '/Users/ysakamoto/Projects/scikit-learn' not in sys.path:
     sys.path.append('/Users/ysakamoto/Projects/scikit-learn')
 
-from sklearn.cross_decomposition import PLSRegression
-from sklearn import linear_model
+# from sklearn.cross_decomposition import PLSRegression
+# from sklearn import linear_model
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
 
 
+def load_data(filename):
+
+    print "cleaning the train data..."
+    filename_ = filename.replace('.csv', '_.csv')    
+    with open(filename) as f:
+        with open(filename_, 'w') as g:
+            for line in f:
+                g.write(line.replace('Class_', ''))
+    
+    print "loading data from file %s..." %filename_
+    r = np.loadtxt(filename_, delimiter=',', skiprows=1)
+
+    return filename_, r
+
+    
 train_file = 'train.csv'
-train_file_ = 'train_.csv'
+train_file_, r = load_data(train_file)
 
-# print "cleaning the train data..."
-# with open(train_file) as f:
-#     with open(train_file_, 'w') as g:
-#         for line in f:
-#             g.write(line.replace('Class_', ''))
-
-print "loading data from file..."
-r = np.loadtxt(train_file_, delimiter=',', skiprows=1)
+# test_file = 'test.csv'
+# test_file_ = 'test_.csv'
 
 # id: starting from 0
 ids = np.asarray(r[:, 0], dtype=int) - 1
-data = r[:, 1:]
+data = r[:, 1:-1]
 target = r[:, -1]
 
 n, p = data.shape
@@ -48,12 +59,14 @@ test_target = target[ids_test]
 N = len(test_target)
 
 # fit model and predict!
-model = svm.SVC(gamma=0.001, C=100.)
+# clf = svm.SVC(gamma=0.001, C=100.)
+clf = ExtraTreesClassifier(n_estimators=1000, max_depth=None,
+                           min_samples_split=1, random_state=None)
 time0 = time.time()
 print "fitting train data and target..."
-model.fit(train_data, train_target)
+clf.fit(train_data, train_target)
 print "predicting the test target"
-pred_target = model.predict(test_data)
+pred_target = clf.predict(test_data)
 print "time elasped for prediction: ", time.time() - time0
 
 # plot predicted target against test target
@@ -76,7 +89,7 @@ for i in range(N):
 
 logloss /= N
 
-print logloss
+print "logloss score: ", logloss
 
 
 print "writing the results to file..."
