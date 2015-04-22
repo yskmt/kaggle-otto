@@ -6,7 +6,7 @@ train_ll = []
 eval_std = []
 train_std = []
 
-fname = 'log/xgcv_01'
+fname = 'log/xgcv_11'
 
 with open(fname) as f:
     for line in f:

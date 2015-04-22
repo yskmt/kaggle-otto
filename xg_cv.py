@@ -6,13 +6,22 @@ Otto Group product classification challenge @ Kaggle
 __author__ : Yusuke Sakamoto
 """
 
-
-import xgboost as xgb
+import sys
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
+import xgboost as xgb
 import time
 
+
+# INPUT
+if int(len(sys.argv) < 4):
+	print "Number of arguments wrong!"
+	sys.exit(1)
+
+arg0 = int(sys.argv[1])
+arg1 = int(sys.argv[2])
+arg2 = int(sys.argv[3])
 
 # calculate the logloss score (smaller better)
 def calculate_logloss(labels_proba, labels_test):
@@ -80,11 +89,20 @@ evallist = [(dtest, 'eval'), (dtrain, 'train')]
 # evallist = [(dtest, 'eval')]
 
 # cross-validatoin
-t0 = time.time()
+num_round = 4000
 etas = [0.1, 0.05, 0.01, 0.005]
-for eta in etas:
-    num_round = 2000
-    cv_result = xgb.cv(param, dtrain, num_round, nfold=5,
-                       metrics={'mlogloss'}, seed=0)
+subsamples = [1.0, 0.75, 0.5]
+max_depths = [2, 3, 4]
 
+print 'eta: ', etas[arg0]
+print 'subsample: ', subsamples[arg1]
+print 'max_depth: ', max_depths[arg2]
+
+param['bst:eta'] = etas[arg0]
+param['bst:subsample'] = subsamples[arg1]
+param['bst:max_depth'] = max_depths[arg2]
+
+t0 = time.time()
+cv_result = xgb.cv(param, dtrain, num_round, nfold=5,
+                   metrics={'mlogloss'}, seed=0)
 print "elapsed time: ", (time.time() - t0)
