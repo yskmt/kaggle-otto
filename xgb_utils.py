@@ -13,6 +13,7 @@ from sklearn import preprocessing
 import xgboost as xgb
 import matplotlib.pyplot as plt
 import time
+import json
 
 
 # calculate the logloss score (smaller better)
@@ -63,7 +64,6 @@ def clean_train(train_csv, train_buf, random=False):
 
     
 def xgb_cv(params, dtrain, num_rounds, nfold=5):
-
     print 'cross validation started...'
     
     # cross-validatoin
@@ -81,11 +81,13 @@ def xgb_cv(params, dtrain, num_rounds, nfold=5):
 
     ll_test = np.array(ll_test, dtype=float)
     ll_train = np.array(ll_train, dtype=float)
-
     lls = np.array([ll_test, ll_train]).T
-    np.savetext('xg_cv.csv', lls)
 
     return lls
 
 
-
+def write_params(pname, params):
+    print 'writing the parameters to file...'
+    
+    with open(pname, 'w') as f:
+        json.dump(params, f)
