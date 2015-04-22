@@ -92,7 +92,7 @@ evallist = [(dtest, 'eval'), (dtrain, 'train')]
 num_round = 4000
 etas = [0.1, 0.05, 0.01, 0.005]
 subsamples = [1.0, 0.75, 0.5]
-max_depths = [2, 3, 4]
+max_depths = [2, 3, 4, 5]
 
 print 'eta: ', etas[arg0]
 print 'subsample: ', subsamples[arg1]

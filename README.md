@@ -1,13 +1,21 @@
 # Kaggle's Otto Classification Challenge
 
 
-[Challenge website]
-(https://www.kaggle.com/c/otto-group-product-classification-challenge)
+[Challenge website](https://www.kaggle.com/c/otto-group-product-classification-challenge)
 
 ## Gradient Boosting Classifier
 
 * Use [xgboost](https://github.com/dmlc/xgboost)
-* Cross validation
+* Cross validation: 
+  - Tuning parameters:
+    - learning rate (eta)
+    - subsampling rate (subsample)
+    - max depth of the individual trees (max_depth)
+    - number of rounds: 4000
+  - Best so far:
+    - eta=0.05, subsample=0.75, num_rounds=4000, max_depth=2
+      - cv test logloss error = 0.536728+0.017996
+
 
 ## Neural net
 
@@ -17,8 +25,7 @@
 ## Useful resources
 
 * Kaggle forum
-  * [Neural net]
-    (https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/13016/neural-nets-in-sklearn/68544#post68544)
+  * [Neural net](https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/13016/neural-nets-in-sklearn/68544#post68544)
   * [Single model results](https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/13302/how-far-could-you-get-with-just-one-model)
 
     
