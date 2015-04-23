@@ -12,6 +12,8 @@
     - subsampling rate (subsample)
     - max depth of the individual trees (max_depth)
     - number of rounds: 4000
+  - Observations:
+    - Tree depth = 10 works so much better than ~3
   - Best so far:
     - eta=0.05, subsample=0.75, num_rounds=4000, max_depth=2
       - cv test logloss error = 0.536728+0.017996
