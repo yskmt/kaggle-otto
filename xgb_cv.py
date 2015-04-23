@@ -26,7 +26,7 @@ params = {'max_depth': 10,
           'silent': 1,
           'nthread': 4}
 
-# cross validation on eta
+# cross validation parameters
 etas = [0.3, 0.1, 0.05, 0.01, 0.005, 0.025]
 max_depths = [10, 8, 12, 14, 16]
 subsamples = [0.9, 0.8, 0.7]
@@ -36,12 +36,12 @@ colb_trees = [0.8]
 
 # input parameters
 args = [0] * 6
-n_args = len(sys.argv)-1
+n_args = len(sys.argv) - 1
 for i in range(n_args):
-	args[i] = int(sys.argv[1+1])
+    args[i] = int(sys.argv[1 + 1])
 
-train_csv = 'train.csv'
-train_buf = 'train.buffer'
+train_csv = 'data/train.csv'
+train_buf = 'data/train.buffer'
 
 # first clean the train data and save
 if not os.path.isfile(train_buf):
@@ -49,9 +49,9 @@ if not os.path.isfile(train_buf):
 else:
     dtrain = xgb.DMatrix(train_buf)
 
-# booster parameters from christdubois
+# set booster parameters
 params = {'eta': etas[args[0]],
-		  'max_depth': max_depths[args[1]],
+          'max_depth': max_depths[args[1]],
           'objective': 'multi:softprob',
           'num_class': 9,
           'min_child_weight': minc_weights[args[3]],
@@ -60,20 +60,16 @@ params = {'eta': etas[args[0]],
           'colsample_bytree': colb_trees[args[5]],
           'silent': 1,
           'nthread': 4}
-num_rounds = 2
+num_rounds = 2000
 
 logdir = 'log/'
-fname = logdir+'xg_cv_eta_%.4f_md_%d_ss_%.1f_mw_%d_g_%d_ct_%.1f'\
-		%(params['eta'], params['max_depth'], params['subsample'],
-		  params['min_child_weight'], params['gamma'], params['colsample_bytree'])
+fname = logdir + 'xg_cv_eta_%.4f_md_%d_ss_%.1f_mw_%d_g_%d_ct_%.1f'\
+    % (params['eta'], params['max_depth'],
+       params['subsample'], params['min_child_weight'],
+       params['gamma'], params['colsample_bytree'])
 
-xu.write_params(fname+'.txt', params)
+xu.write_params(fname + '.txt', params)
 lls = xu.xgb_cv(params, dtrain, num_rounds, nfold=5)
-np.savetxt(fname+'.csv', lls)
+np.savetxt(fname + '.csv', lls)
 
 sys.exit(0)
-
-# plt.plot(lls[0, :], label='test')
-# plt.plot(lls[1, :], label='train')
-# plt.legend(loc='best')
-# plt.show()

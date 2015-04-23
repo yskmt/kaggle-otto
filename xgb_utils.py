@@ -91,3 +91,17 @@ def write_params(pname, params):
     
     with open(pname, 'w') as f:
         json.dump(params, f)
+
+
+def plot_cv_results(fname):
+
+    lls = np.loadtxt(fname)
+    eval_ll = lls[:,0]
+    train_ll = lls[:,1]
+
+    plt.plot(eval_ll, label='eval-mlogloss')
+    plt.plot(train_ll, label='train-mlogloss')
+    plt.legend(loc='best')
+    plt.show()
+
+    return eval_ll, train_ll

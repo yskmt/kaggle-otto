@@ -41,9 +41,9 @@ def calculate_logloss(labels_proba, labels_test):
 
 
 # import data
-train = pd.read_csv('train.csv')
-test = pd.read_csv('test.csv')
-sample = pd.read_csv('sampleSubmission.csv')
+train = pd.read_csv('data/train.csv')
+test = pd.read_csv('data/test.csv')
+sample = pd.read_csv('data/sampleSubmission.csv')
 
 # drop ids and get labels
 labels = train.target.values
@@ -81,7 +81,6 @@ labels_test = lbl_enc.fit_transform(labels_test)
 # clf = svm.SVC(gamma=0.001, C=100., probability=True)
 # clf = RandomForestClassifier(n_estimators=200, max_depth=None,
 # min_samples_split=1)
-
 learning_rate = [0.05, 0.025]
 subsample = [0.8, 0.6]
 lls = np.zeros((len(learning_rate), len(subsample)))
