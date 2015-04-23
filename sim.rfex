@@ -9,6 +9,7 @@ cd $WORKDIR
 setenv OMP_NUM_THREADS 12
 
 # max_depth
-python rfex_cv.py $1
+# n_estimators, max_depth, max_features
+python rfex_cv.py $1 $2 $3
 
 echo "DONE"
