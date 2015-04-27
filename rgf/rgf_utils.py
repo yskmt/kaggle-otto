@@ -87,9 +87,9 @@ def gen_datafiles(train_csv, simdir='.', n_folds=1):
         np.savetxt(simdir + '/data/y_test-%d' % fn, y_test, fmt='%d')
         # convert the labels to +-1
         for i in range(9):
-            np.savetxt(simdir + '/data/y_train_%d-%d' % (i , fn),
+            np.savetxt(simdir + '/data/y_train-%d-%d' % (fn, i),
                        [1 if l == i else -1 for l in y_train], fmt='%d')
-            np.savetxt(simdir + '/data/y_test_%d-%d' % (i, fn),
+            np.savetxt(simdir + '/data/y_test-%d-%d' % (fn, i),
                        [1 if l == i else -1 for l in y_test], fmt='%d')
         fn += 1
 
