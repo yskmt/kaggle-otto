@@ -3,6 +3,9 @@
 
 [Challenge website](https://www.kaggle.com/c/otto-group-product-classification-challenge)
 
+## Regularized Greedy Forest
+
+
 ## Gradient Boosting Classifier
 
 * Use [xgboost](https://github.com/dmlc/xgboost)
@@ -23,6 +26,13 @@
 
 * lasagne + nolearn
 * [quick starting guide](http://nbviewer.ipython.org/github/ottogroup/kaggle/blob/master/Otto_Group_Competition.ipynb)
+
+## Random Forest
+
+## Adaboost
+
+* Not very good.
+
 
 ## Useful resources
 
