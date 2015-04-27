@@ -17,7 +17,9 @@ paralleliszed.
 import subprocess
 import os
 import errno
+import tempfile
 
+from sklearn.base import BaseEstimator
 import numpy as np
 from joblib import Parallel, delayed
 
@@ -74,7 +76,7 @@ def _predict_each_label(X_file, model_file, predict_file, lbn,
     subprocess.call(call_rgf + ['predict', _predict_inp[:-4]])
 
 
-class RegularizedGreedyForestClassifier():
+class RegularizedGreedyForestClassifier(BaseEstimator):
 
     def __init__(self, simdir='.', loss='LS', algorithm='RGF',
                  max_leaf_forest=10000, test_interval=1000,
@@ -96,41 +98,39 @@ class RegularizedGreedyForestClassifier():
         self.proba = None
         self.n_models = int(max_leaf_forest / test_interval)
         self.n_jobs = n_jobs
-        
-    def fit(self, X_file, y_file, model_file):
+
+    def fit(self, X, y):
         """Fit the RGF model to each class separately"""
 
         mkdir_p(self.simdir)
         mkdir_p(self.simdir + '/input')
         mkdir_p(self.simdir + '/output')
         mkdir_p(self.simdir + '/model')
+        mkdir_p(self.simdir + '/data')
 
-        self.train_params['train_x_fn'] = X_file
-        # for i in range(self.n_labels):
-        # self.fit_each_label(y_file, model_file, i)
+        self._X_trainfile = self.simdir + '/data/X_train'
+        np.savetxt(self._X_trainfile, X)
+
+        self._y_trainfile = self.simdir + '/data/y_train'
+        # np.savetxt(self._y_trainfile, y)
+
+        # convert the labels to +-1
+        for i in range(9):
+            np.savetxt(self._y_trainfile + '-%d' % (i),
+                       [1 if l == i else -1 for l in y], fmt='%d')
+        
+        self.train_params['train_x_fn'] = self._X_trainfile
+
+        self._model_file = self.simdir + \
+            '/model/%s' % self.train_params['algorithm']
 
         Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_each_label)(
-                self.train_params, self.train_inp, y_file, model_file, i)
+                self.train_params, self.train_inp, self._y_trainfile,
+                self._model_file, i)
             for i in range(self.n_labels))
 
         return self
-
-    # def fit_each_label(self, y_file, model_file, lbn):
-    #     self.train_params['train_y_fn'] = y_file + '-' + str(lbn)
-    #     self.train_params['model_fn_prefix'] = model_file + '-' + str(lbn)
-    #     train_inp = self.train_inp + '-' + str(lbn) + '.inp'
-
-    #     # create train input file
-    #     with open(train_inp, 'w') as tf:
-    #         for k in self.train_params.keys():
-    #             if self.train_params[k] is not None:
-    #                 tf.write('%s=%s\n' % (k, str(self.train_params[k])))
-
-    #     # RGF model fit
-    #     subprocess.call(call_rgf + ['train', train_inp[:-4]])
-
-    #     return self
 
     def predict(self, X_file, model_file, predict_file,
                 model_number=None):
@@ -145,23 +145,25 @@ class RegularizedGreedyForestClassifier():
 
         return label_ens
 
-    def predict_proba(self, X_file, model_file, predict_file,
-                      model_number=None):
+    def predict_proba(self, X, model_number=None):
 
+        self._X_testfile = self.simdir + '/data/X_test'
+        np.savetxt(self._X_testfile, X)
+
+        self._predict_file = self.simdir + '/output/y_pred'
+        
         if model_number is None:
             model_number = self.n_models
 
         Parallel(n_jobs=self.n_jobs)(
-            delayed(_predict_each_label)(X_file, model_file, predict_file,
-                                         i, model_number, self.predict_inp)
+            delayed(_predict_each_label)
+            (self._X_testfile, self._model_file, self._predict_file,
+             i, model_number, self.predict_inp)
             for i in range(self.n_labels))
 
-        # for i in range(self.n_labels):
-        #     self.predict_each_label(X_file, model_file, predict_file,
-        #                             i, model_number=model_number)
-
         # read output file
-        self.proba = self.calc_proba(predict_file, model_number=model_number)
+        self.proba = self.calc_proba(self._predict_file,
+                                     model_number=model_number)
 
         return self.proba
 
