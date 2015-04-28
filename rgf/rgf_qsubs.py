@@ -12,8 +12,8 @@ ti = 1000
 i = 0
 for L2 in L2s:
     for sL2 in sL2s:
-		for reg_depth in reg_depths:
-			simdir = 'cvopt_%d' %i
-			subprocess.call(['qsub', 'sim', simdir, algo, loss, str(L2), str(sL2),
-							 str(mlf), str(ti), str(reg_depth)])
-			i += 1
+        for reg_depth in reg_depths:
+            simdir = 'cvopt_%d' %i
+            subprocess.call(['qsub', 'sim', simdir, algo, loss, str(L2), str(sL2),
+                             str(mlf), str(ti), str(reg_depth)])
+            i += 1

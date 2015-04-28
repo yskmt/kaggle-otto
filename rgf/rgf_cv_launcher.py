@@ -5,7 +5,7 @@ from sklearn import cross_validation
 
 import rgf_utils as ru
 from regularized_greedy_forest import RegularizedGreedyForestClassifier as RGFC
-
+from regularized_greedy_forest import mkdir_p
 
 if len(sys.argv) < 9:
     sys.exit(1)
@@ -52,6 +52,9 @@ def rgf_cv(X, y, n_folds, cv_params):
         X_train, X_test = X[train_index, :], X[test_index, :]
         y_train, y_test = y[train_index], y[test_index]
 
+        mkdir_p(simdir+'/data')
+        np.savetxt(simdir + '/data/y_test-%d' % ncv, y_test)
+        
         rg = RGFC(simdir=simdir_cv, algorithm=algorithm, loss=loss,
                   reg_L2=L2, reg_sL2=sL2, reg_depth=reg_depth,
                   max_leaf_forest=max_leaf_forest, test_interval=test_interval,
