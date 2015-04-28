@@ -80,7 +80,7 @@ class RegularizedGreedyForestClassifier(BaseEstimator):
 
     def __init__(self, simdir='.', loss='LS', algorithm='RGF',
                  max_leaf_forest=10000, test_interval=1000,
-                 reg_L2=1.0, reg_sL2=None,
+                 reg_L2=1.0, reg_sL2=None, reg_depth=None,
                  n_labels=2, n_jobs=1):
         self.train_params = {
             'loss': loss,
@@ -89,6 +89,7 @@ class RegularizedGreedyForestClassifier(BaseEstimator):
             'test_interval': test_interval,
             'reg_sL2': reg_sL2,
             'reg_L2': reg_L2,
+			'reg_depth': reg_depth
         }
 
         self.simdir = simdir
