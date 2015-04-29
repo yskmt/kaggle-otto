@@ -1,0 +1,13 @@
+#$ -j y                   # Join stdin and stderr
+#$ -V                     # Use current environment variables
+#$ -cwd                   # Use current directory
+#$ -N svc                 # Job name
+#$ -o $JOB_NAME.o$JOB_ID  # Name of the output file
+
+setenv WORKDIR /home/ysakamoto/work/kaggle/otto/svc
+cd $WORKDIR
+setenv OMP_NUM_THREADS 12
+
+python svc.py $1 $2 $3 $4 $5 $6
+
+echo "DONE"
