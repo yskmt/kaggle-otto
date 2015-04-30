@@ -50,41 +50,49 @@ def logloss_mc(model, x, y_true, epsilon=1e-15):
     # get probabilities
     y = [y_prob[i, j] for (i, j) in enumerate(y_true)]
     ll = - np.mean(np.log(y))
+
+    print "Logloss: ", ll
+    
     return ll
 
 
-# # import data
-# train_csv = 'data/train.csv'
-# train = pd.read_csv(train_csv)
+if not os.path.isfile('data/train_pped.csv'):
 
-# # drop ids and get labels
-# labels = train.target.values
-# train = train.drop('id', axis=1)
-# train = train.drop('target', axis=1)
+    # import data
+    print "reading data..."
+    train_csv = 'data/train.csv'
+    train = pd.read_csv(train_csv)
 
-# # change to numpy array
-# train = train.values
+    # drop ids and get labels
+    labels = train.target.values
+    train = train.drop('id', axis=1)
+    train = train.drop('target', axis=1)
 
-# # encode labels
-# lbl_enc = preprocessing.LabelEncoder()
-# labels = lbl_enc.fit_transform(labels)
+    # change to numpy array
+    train = train.values
 
-# # shuffle
-# n, p = train.shape
-# random_select = range(n)
-# np.random.seed(1234)
-# np.random.shuffle(random_select)
-# train = train[random_select, :]
-# labels = labels[random_select]
+    # encode labels
+    lbl_enc = preprocessing.LabelEncoder()
+    labels = lbl_enc.fit_transform(labels)
 
+    # shuffle
+    n, p = train.shape
+    random_select = range(n)
+    np.random.seed(1234)
+    np.random.shuffle(random_select)
+    train = train[random_select, :]
+    labels = labels[random_select]
 
-# print "Saving shuffled train and labels..."
-# np.savetxt('data/train_shuffled.csv', train)
-# np.savetxt('data/labels_shuffled.csv', labels)
+    scaler = preprocessing.StandardScaler().fit(train)
+    train = scaler.transform(train)
+
+    print "Saving preprocessed train and labels..."
+    np.savetxt('data/train_pped.csv', train)
+    np.savetxt('data/labels_pped.csv', labels)
 
 print "Loading train and label files..."
-train = np.loadtxt('data/train_shuffled.csv')
-labels = np.loadtxt('data/labels_shuffled.csv')
+train = np.loadtxt('data/train_pped.csv')
+labels = np.loadtxt('data/labels_pped.csv')
 
 
 n_cvs = 5
@@ -99,20 +107,19 @@ cv_params['gamma'] = float(sys.argv[5])
 
 clf = svm.SVC(probability=True, verbose=False,
               C=cv_params['C'], kernel=cv_params['kernel'],
-              gamma=cv_params['gamma'])
+              gamma=cv_params['gamma'], cach_size=1000)
 mkdir_p(cv_params['simdir'])
 
 scores = cross_validation.cross_val_score(clf, train, labels,
-										  cv=n_cvs, n_jobs=-1,
-										  scoring=logloss_mc,
-										  verbose=1)
+                                          cv=n_cvs, n_jobs=-1,
+                                          scoring=logloss_mc,
+                                          verbose=1)
 print "scores: ", scores
 
 logfile = cv_params['simdir'] + '/%d.txt' % cv_params['simnum']
 with open(logfile, 'w') as fscores:
-    fscores.write('%d %f %f\n' % (scores.mean(), scores.std()))
+    fscores.write('%f %f\n' % (scores.mean(), scores.std()))
 
 pfile = logfile.replace('.txt', 'p.txt')
 with open(pfile, 'w') as f:
-	json.dump(cv_params, f)
-
+    json.dump(cv_params, f)
