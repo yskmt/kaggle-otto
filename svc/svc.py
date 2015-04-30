@@ -9,7 +9,6 @@ __author__ : Yusuke Sakamoto
 
 import sys
 import os
-import errno
 import json
 
 import numpy as np
@@ -18,42 +17,14 @@ import pandas as pd
 from sklearn import svm
 from sklearn import cross_validation
 from sklearn import preprocessing
+from sklearn.pipeline import make_pipeline
 
+pardir = os.path.realpath('..')
+if pardir not in sys.path:
+    sys.path.append(pardir)
 
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
+from otto_utils import mkdir_p, logloss_mc
 
-
-def logloss_mc(model, x, y_true, epsilon=1e-15):
-    """Multiclass logloss:
-    https://github.com/ottogroup/kaggle/blob/master/benchmark.py
-
-    Precit the probability of some model and calculate the logloss
-    error for cross-validation.
-
-    """
-
-    # predict probability
-    # print 'preciting probability for cv #: %d' % cv_count
-    y_prob = model.predict_proba(x)
-
-    # normalize
-    y_prob = y_prob / y_prob.sum(axis=1).reshape(-1, 1)
-    y_prob = np.maximum(epsilon, y_prob)
-    y_prob = np.minimum(1 - epsilon, y_prob)
-    # get probabilities
-    y = [y_prob[i, j] for (i, j) in enumerate(y_true)]
-    ll = - np.mean(np.log(y))
-
-    print "Logloss: ", ll
-    
-    return ll
 
 
 if not os.path.isfile('data/train_pped.csv'):
@@ -94,7 +65,6 @@ print "Loading train and label files..."
 train = np.loadtxt('data/train_pped.csv')
 labels = np.loadtxt('data/labels_pped.csv')
 
-
 n_cvs = 5
 
 cv_params = {}
@@ -105,9 +75,12 @@ cv_params['C'] = float(sys.argv[4])
 cv_params['gamma'] = float(sys.argv[5])
 
 
-clf = svm.SVC(probability=True, verbose=False,
-              C=cv_params['C'], kernel=cv_params['kernel'],
-              gamma=cv_params['gamma'], cach_size=1000)
+clf_svc = svm.SVC(probability=True, verbose=False,
+                  C=cv_params['C'], kernel=cv_params['kernel'],
+                  gamma=cv_params['gamma'], cache_size=1000)
+
+clf = make_pipeline(preprocessing.StandardScaler(), clf_svc)
+
 mkdir_p(cv_params['simdir'])
 
 scores = cross_validation.cross_val_score(clf, train, labels,

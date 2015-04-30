@@ -11,48 +11,20 @@ __author__ : Yusuke Sakamoto
 """
 
 
-
 import sys
 import os
 import errno
 import json
 
 import numpy as np
-import pandas as pd
 
 from sklearn import svm
 from sklearn import cross_validation
 from sklearn import metrics
-from sklearn import preprocessing
 from sklearn.externals import joblib
 
+from ..otto_utils import mkdir_p, calc_ll_from_proba
 
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
-def calc_ll_from_proba(label_proba, label_true, eps=1e-15):
-    """
-    Calculate the logloss from the probability matrix.
-    """
-
-    # create a probability matrix for test labels (1s and 0s)
-    N, m = label_proba.shape
-    test_proba = np.zeros((N, m))
-    idx = np.array(list(enumerate(label_true)), dtype=int)
-    test_proba[idx[:, 0], idx[:, 1]] = 1
-
-    logloss = -np.sum(
-        test_proba * np.log(
-            np.maximum(np.minimum(label_proba, 1 - 1e-15), 1e-15))) / N
-
-    return logloss
 
 if len(sys.argv) < 5:
     sys.exit(1)
