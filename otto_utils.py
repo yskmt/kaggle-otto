@@ -65,6 +65,7 @@ def calc_ll_from_proba(label_proba, label_true, eps=1e-15):
 def load_train_data(path):
     df = pd.read_csv(path)
     X = df.values.copy()
+    np.random.seed(1234)
     np.random.shuffle(X)
     X, labels = X[:, 1:-1].astype(np.float32), X[:, -1]
     encoder = LabelEncoder()
