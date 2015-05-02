@@ -9,36 +9,28 @@ __author__ : Yusuke Sakamoto
 import sys
 import os
 import numpy as np
+import json
+
 import xgboost as xgb
+
 import xgb_utils as xu
 
 
-# dafult parameters
-# args = [eta, max_depth, subsamples, min_child_weight, gamma, colapse_bytree
-params = {'max_depth': 10,
-          'objective': 'multi:softprob',
-          'num_class': 9,
-          'min_child_weight': 4,
-          'subsample': .9,
-          'gamma': 1,
-          'colsample_bytree': .8,
-          'silent': 1,
-          'nthread': 4}
+pardir = os.path.realpath('..')
+if pardir not in sys.path:
+    sys.path.append(pardir)
 
-# cross validation parameters
-etas = [0.3, 0.1, 0.05, 0.01, 0.005, 0.025]
-max_depths = [10, 8, 12, 14, 16]
-subsamples = [0.9, 0.8, 0.7]
-minc_weights = [4, 2, 1]
-gammas = [1]
-colb_trees = [0.8]
+from otto_utils import (mkdir_p,
+                        load_train_data, load_test_data, calc_ll_from_proba)
 
-# input parameters
-args = [0] * 6
-n_args = len(sys.argv) - 1
-for i in range(n_args):
-    args[i] = int(sys.argv[1 + 1])
 
+if len(sys.argv) < 9:
+    print "python xgb_cv.py simdir simnum num_rounds eta gamma max_depth "\
+        "min_child_weight colsample_bytree"
+    sys.exit(1)
+
+
+# files
 train_csv = 'data/train.csv'
 train_buf = 'data/train.buffer'
 
@@ -48,27 +40,25 @@ if not os.path.isfile(train_buf):
 else:
     dtrain = xgb.DMatrix(train_buf)
 
+n_folds = 5
+
 # set booster parameters
-params = {'eta': etas[args[0]],
-          'max_depth': max_depths[args[1]],
-          'objective': 'multi:softprob',
-          'num_class': 9,
-          'min_child_weight': minc_weights[args[3]],
-          'subsample': subsamples[args[2]],
-          'gamma': gammas[args[4]],
-          'colsample_bytree': colb_trees[args[5]],
-          'silent': 1,
-          'nthread': 4}
-num_rounds = 2000
+simdir = sys.argv[1]
+simnum = int(sys.argv[2])
+num_rounds = int(sys.argv[3])
+cv_params = {
+    'nthread': 16,
+    'eta': sys.argv[4],
+    'gamma': sys.argv[5],
+    'max_depth': sys.argv[6],
+    'min_child_weight': sys.argv[7],
+    'colsample_bytree': sys.argv[8]}
 
-logdir = 'log/'
-fname = logdir + 'xg_cv_eta_%.4f_md_%d_ss_%.1f_mw_%d_g_%d_ct_%.1f'\
-    % (params['eta'], params['max_depth'],
-       params['subsample'], params['min_child_weight'],
-       params['gamma'], params['colsample_bytree'])
 
-xu.write_params(fname + '.txt', params)
-lls = xu.xgb_cv(params, dtrain, num_rounds, nfold=5)
+mkdir_p(simdir)
+paramfile = simdir + '/param_%d.txt' %simnum
+with open(paramfile, 'w') as fp:
+    json.dump(cv_params, fp)
+
+lls = xu.xgb_cv(cv_params, dtrain, num_rounds, nfold=5)
 np.savetxt(fname + '.csv', lls)
-
-sys.exit(0)
