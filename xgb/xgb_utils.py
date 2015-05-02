@@ -22,7 +22,7 @@ if pardir not in sys.path:
     sys.path.append(pardir)
 
 
-from otto_utils import calc_ll_from_proba, load_train_data
+from otto_utils import load_train_data
 
 
 def load_xgb_train_data(train_csv, train_buf):

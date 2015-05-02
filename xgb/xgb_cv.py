@@ -10,7 +10,6 @@ import sys
 import os
 import numpy as np
 import xgboost as xgb
-import matplotlib.pyplot as plt
 import xgb_utils as xu
 
 

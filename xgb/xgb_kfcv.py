@@ -7,6 +7,7 @@ __author__ : Yusuke Sakamoto
 """
 
 import os
+import sys
 import numpy as np
 import json
 
@@ -15,13 +16,18 @@ import xgboost as xgb
 from sklearn import cross_validation
 from sklearn import metrics
 
+pardir = os.path.realpath('..')
+if pardir not in sys.path:
+    sys.path.append(pardir)
+
+
 import xgb_utils as xu
 import otto_utils as ou
 
 
 simnum = 0
 
-num_rounds = 10
+num_rounds = 2000
 params = {"subsample": 0.9,
           "nthread": 4,
           "eta": 0.0125,
@@ -42,12 +48,12 @@ train_buf = 'data/train.buffer'
 
 
 # first clean the train data and save
-if not os.path.isfile(train_buf):
-    X, y, encoder, scaler, dtrain\
-        = xu.load_xgb_train_data('../data/train.csv', train_buf)
+# if not os.path.isfile(train_buf):
+X, y, encoder, scaler, dtrain\
+    = xu.load_xgb_train_data('../data/train.csv', train_buf)
     # X_test, ids = ou.load_test_data('../data/test.csv', scaler)
-else:
-    dtrain = xgb.DMatrix(train_buf)
+# else:
+    # dtrain = xgb.DMatrix(train_buf)
 
 simdir = 'cv_%d' % simnum
 fname = simdir
