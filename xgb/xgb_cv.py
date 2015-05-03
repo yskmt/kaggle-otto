@@ -31,12 +31,12 @@ if len(sys.argv) < 9:
 
 
 # files
-train_csv = 'data/train.csv'
+train_csv = '../data/train.csv'
 train_buf = 'data/train.buffer'
 
 # first clean the train data and save
 if not os.path.isfile(train_buf):
-    dtrain = xu.clean_train(train_csv, train_buf)
+    _, _, _, _, dtrain = xu.load_xgb_train_data(train_csv, train_buf)
 else:
     dtrain = xgb.DMatrix(train_buf)
 
@@ -47,18 +47,26 @@ simdir = sys.argv[1]
 simnum = int(sys.argv[2])
 num_rounds = int(sys.argv[3])
 cv_params = {
+    "eval_metric": "mlogloss",
+    "objective": "multi:softprob",
+    "silent": 1,
+    "num_class": 9,
     'nthread': 16,
     'eta': sys.argv[4],
     'gamma': sys.argv[5],
     'max_depth': sys.argv[6],
     'min_child_weight': sys.argv[7],
-    'colsample_bytree': sys.argv[8]}
+    'colsample_bytree': sys.argv[8],
+    'early_stopping_rounds': 10}
 
+
+print cv_params
 
 mkdir_p(simdir)
-paramfile = simdir + '/param_%d.txt' %simnum
+paramfile = simdir + '/param_%d.txt' % simnum
 with open(paramfile, 'w') as fp:
     json.dump(cv_params, fp)
 
-lls = xu.xgb_cv(cv_params, dtrain, num_rounds, nfold=5)
-np.savetxt(fname + '.csv', lls)
+logfile = simdir + '/log_%d.txt' % simnum
+lls = xu.xgb_cv(cv_params, dtrain, num_rounds, nfold=3)
+np.savetxt(logfile, lls)

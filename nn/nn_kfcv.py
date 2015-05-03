@@ -1,15 +1,25 @@
-
 # coding: utf-8
 
 # # Otto Group Product Classification Challenge using nolearn/lasagne
 
-# This short notebook is meant to help you getting started with nolearn and lasagne in order to train a neural net and make a submission to the Otto Group Product Classification Challenge.
-#
-# * [Otto Group Product Classification Challenge](https://www.kaggle.com/c/otto-group-product-classification-challenge)
+# This short notebook is meant to help you getting started with
+# nolearn and lasagne in order to train a neural net and make a
+# submission to the Otto Group Product Classification Challenge.
+
+
+# * [Otto Group Product Classification
+# * Challenge](https://www.kaggle.com/c/otto-group-product-classification-challenge)
+
 # * [Get the notebook from the Otto Group repository](https://github.com/ottogroup)
 # * [Nolearn repository](https://github.com/dnouri/nolearn)
 # * [Lasagne repository](https://github.com/benanne/Lasagne)
-# * [A nolearn/lasagne tutorial for convolutional nets](http://danielnouri.org/notes/2014/12/17/using-convolutional-neural-nets-to-detect-facial-keypoints-tutorial/)
+
+# * [A nolearn/lasagne tutorial for convolutional
+# * nets](http://danielnouri.org/notes/2014/12/17/using-convolutional-neural-nets-to-detect-facial-keypoints-tutorial/)
+
+# [Kaggle forum](https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/13016/neural-nets-in-sklearn/68544)
+# http://nbviewer.ipython.org/github/ottogroup/kaggle/blob/master/Otto_Group_Competition.ipynb
+
 
 # Imports
 import os
