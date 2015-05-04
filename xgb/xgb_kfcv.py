@@ -24,12 +24,22 @@ if pardir not in sys.path:
 import xgb_utils as xu
 import otto_utils as ou
 
+if len(sys.argv)<2:
+    sys.exit(1)
+
+ncv = int(sys.argv[1])
+
+if ncv not in [0, 1, 2, 3, 4]:
+    sys.exit(1)
 
 simdir = 'kfcv'
 ou.mkdir_p(simdir)
-simnum = 0
 
-num_rounds = 2
+simdir = simdir + '/' + str(ncv)
+ou.mkdir_p(simdir)
+
+
+num_rounds = 2000
 params = """{"eval_metric": "mlogloss", "early_stopping_rounds": 10, "colsample_bytree": "0.5", "num_class": 9, "silent": 1, "nthread": 16, "min_child_weight": "4", "subsample": "0.8", "eta": "0.0125","objective": "multi:softprob", "max_depth": "14", "gamma": "0.025"}"""
 
 params = json.loads(params)
@@ -52,8 +62,12 @@ kf = cross_validation.KFold(n, n_folds=n_folds,
                             random_state=1234)
 
 ll = []
-ncv = 0
+i = 0
 for train_index, test_index in kf:
+    if i != ncv:
+        i += 1
+        continue
+    
     print "cross-validation: %dth fold..." % ncv
 
     X_train, X_test = X[train_index, :], X[test_index, :]
@@ -81,7 +95,7 @@ for train_index, test_index in kf:
     print metrics.confusion_matrix(
         y_test.astype(int), np.argmax(proba, axis=1).astype(int))
 
-    ncv += 1
+    i += 1
 
 ll = np.array(ll)
 print "logloss: ", ll
