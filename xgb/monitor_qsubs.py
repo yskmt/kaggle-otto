@@ -9,16 +9,17 @@ def monitor_and_qdel():
     qs = []
 
     for ln in return_code.split('\n'):
-	try:
-	    qs.append( ln.split(' ')[2])
-	except:
-	    pass
+	if 'xgb3' in ln:
+	    try:
+		qs.append( ln.split(' ')[2])
+	    except:
+		pass
 
     qs = qs[1:]
     eps = 0.5e-6
 
     for q in qs:
-	with open('xgb2.o%s' %q, 'rb') as f:
+	with open('xgb3.e%s' %q, 'rb') as f:
 
 	    try:
 		lines = f.readlines()
@@ -28,7 +29,7 @@ def monitor_and_qdel():
 		continue
 
 	    if (l25 - l1) < eps:
-		print 'xgb2.o%s' %q
+		print 'xgb3.e%s' %q
 		rc = subprocess.Popen(['qdel', q], stderr=subprocess.STDOUT,
 				      stdout=subprocess.PIPE).communicate()[0]
 		print rc

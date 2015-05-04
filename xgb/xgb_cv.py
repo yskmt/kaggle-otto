@@ -24,9 +24,9 @@ from otto_utils import (mkdir_p,
                         load_train_data, load_test_data, calc_ll_from_proba)
 
 
-if len(sys.argv) < 9:
+if len(sys.argv) < 10:
     print "python xgb_cv.py simdir simnum num_rounds eta gamma max_depth "\
-        "min_child_weight colsample_bytree"
+        "min_child_weight colsample_bytree subsample"
     sys.exit(1)
 
 
@@ -57,6 +57,7 @@ cv_params = {
     'max_depth': sys.argv[6],
     'min_child_weight': sys.argv[7],
     'colsample_bytree': sys.argv[8],
+    'subsample': sys.argv[9],
     'early_stopping_rounds': 10}
 
 

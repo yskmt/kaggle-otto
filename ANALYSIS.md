@@ -1,10 +1,14 @@
 
 # XGB best result
-{"eval_metric": "mlogloss", "num_class": 9, "colsample_bytree": 0.8,
-"silent": 1, "nthread": 4, "min_child_weight": 2, "subsample": 0.9,
-"eta": 0.0125, "objective": "multi:softprob", "max_depth": 14,
-"gamma": 1} 
-[4.534231702254242213e-01 6.557822982143849365e-03]
+
+ 0.444807
+xgb3.e74518 
+{'eval_metric': 'mlogloss', 'early_stopping_rounds': 10,
+'colsample_bytree': '0.5', 'num_class': 9, 'silent': 1, 'nthread': 16,
+'min_child_weight': '4', 'subsample': '0.8', 'eta': '0.0125',
+'objective': 'multi:softprob', 'max_depth': '14', 'gamma': '0.025'}
+
+
 
 ## confusion matrix by xgb
 [[ 206   10    4    0    1   27   21   56   80]

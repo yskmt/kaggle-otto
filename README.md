@@ -3,6 +3,7 @@
 
 [Challenge website](https://www.kaggle.com/c/otto-group-product-classification-challenge)
 
+
 ## Regularized Greedy Forest
 
 
@@ -24,10 +25,24 @@
 
 ## Neural net
 
-* lasagne + nolearn
+### lasagne + nolearn
+
 * [quick starting guide](http://nbviewer.ipython.org/github/ottogroup/kaggle/blob/master/Otto_Group_Competition.ipynb)
 
+#### Note on use of THEANO on euclid
+
+
+    module load cuda
+    export CUDA_ROOT=/opt/apps/sysnet/cuda/6.0/cudatk
+    THEANO_FLAGS='floatX=float32,device=gpu0,nvcc.fastmath=True'  python <myscript>.py
+
+More on [here](http://www.deeplearning.net/software/theano/library/config.html)
+
+### keras
+
+
 ## Random Forest
+* Some sampleing
 
 ## Adaboost
 

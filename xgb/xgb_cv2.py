@@ -13,7 +13,7 @@ min_child_weights = [4, 8]
 colsample_bytrees = [0.7, 0.6, 0.5]
 subsamples = [1.0]
 
-simdir = 'cv2'
+simdir = 'cv3'
 num_rounds = 2000
 
 i = 0
