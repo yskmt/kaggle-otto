@@ -25,45 +25,26 @@ import xgb_utils as xu
 import otto_utils as ou
 
 
+simdir = 'kfcv'
+ou.mkdir_p(simdir)
 simnum = 0
 
-num_rounds = 2000
-params = {"subsample": 0.9,
-          "nthread": 4,
-          "eta": 0.0125,
-          "gamma": 1,
-          "colsample_bytree": 0.8,
-          "max_depth": 14,
-          "min_child_weight": 2,
-          "objective": "multi:softprob",
-          "eval_metric": "mlogloss",
-          "num_class": 9,
-          "silent": 1
-          }
+num_rounds = 2
+params = """{"eval_metric": "mlogloss", "early_stopping_rounds": 10, "colsample_bytree": "0.5", "num_class": 9, "silent": 1, "nthread": 16, "min_child_weight": "4", "subsample": "0.8", "eta": "0.0125","objective": "multi:softprob", "max_depth": "14", "gamma": "0.025"}"""
+
+params = json.loads(params)
 
 
+# files
 train_csv = '../data/train.csv'
-ou.mkdir_p('data')
 train_buf = 'data/train.buffer'
 
-
 # first clean the train data and save
-# if not os.path.isfile(train_buf):
-X, y, encoder, scaler, dtrain\
-    = xu.load_xgb_train_data('../data/train.csv', train_buf)
-    # X_test, ids = ou.load_test_data('../data/test.csv', scaler)
-# else:
-    # dtrain = xgb.DMatrix(train_buf)
-
-simdir = 'cv_%d' % simnum
-fname = simdir
-ou.mkdir_p(simdir)
-
-with open(simdir + '/params.txt', 'w') as f:
-    json.dump(params, f)
-
+print 'loading data...'
+X, y, encoder, scaler = ou.load_train_data(train_csv)
 n_folds = 5
-n = dtrain.num_row()
+
+n, p = X.shape
 
 # create cv number of files for cross validation
 kf = cross_validation.KFold(n, n_folds=n_folds,
@@ -78,8 +59,10 @@ for train_index, test_index in kf:
     X_train, X_test = X[train_index, :], X[test_index, :]
     y_train, y_test = y[train_index], y[test_index]
 
-    # mkdir_p(cv_params['simdir'] + '/data')
-    # np.savetxt(cv_params['simdir'] + '/data/y_test-%d' % ncv, y_test)
+    np.savetxt(simdir + '/X-train-%d' % ncv, X_train)
+    np.savetxt(simdir + '/X-test-%d' % ncv, X_test)
+    np.savetxt(simdir + '/y-train-%d' % ncv, y_train)
+    np.savetxt(simdir + '/y-test-%d' % ncv, y_test)
 
     print "fitting xgb model.."
     clf = xgb.train(params, xgb.DMatrix(X_train, label=y_train),
@@ -87,8 +70,8 @@ for train_index, test_index in kf:
 
     # save model
     print "saving xgb model..."
-    clf.save_model(simdir + '/xgb.model')
-    clf.dump_model(simdir + '/dump.raw.txt')
+    clf.save_model(simdir + '/xgb-%d.model' % ncv)
+    clf.dump_model(simdir + '/dump-%d.txt' % ncv)
 
     # predict
     print "predicting probabilities using xgb model..."

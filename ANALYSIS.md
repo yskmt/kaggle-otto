@@ -1,7 +1,7 @@
 
 # XGB best result
 
- 0.444807
+0.444807
 xgb3.e74518 
 {'eval_metric': 'mlogloss', 'early_stopping_rounds': 10,
 'colsample_bytree': '0.5', 'num_class': 9, 'silent': 1, 'nthread': 16,

@@ -16,14 +16,14 @@ print files
 lls = []
 for f in files:
     with open(f, 'r') as fx:
-	lines = fx.readlines()
-	try:
-	    if lines[-1].startswith('DONE'):
-		lls.append(float(lines[-5].split(':')[1].split('+')[0]))
-	    else:
-		lls.append(float(lines[-1].split(':')[1].split('+')[0]))
-	except:
-	    lls.append(float(lines[-7].split(':')[1].split('+')[0]))
+        lines = fx.readlines()
+        try:
+            if lines[-1].startswith('DONE'):
+                lls.append(float(lines[-5].split(':')[1].split('+')[0]))
+            else:
+                lls.append(float(lines[-1].split(':')[1].split('+')[0]))
+        except:
+            lls.append(float(lines[-7].split(':')[1].split('+')[0]))
 
 lls = np.array(lls)
 
