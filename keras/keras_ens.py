@@ -28,12 +28,18 @@ from sklearn.grid_search import ParameterSampler
 from sklearn import cross_validation
 from sklearn.decomposition import PCA
 
-from keras_utils import (load_data, build_keras_model,
+from keras_utils import (load_data, build_keras_model, keras_cv,
                          preprocess_data, preprocess_labels, calc_ll_from_proba)
 
-simname = 'ens'
-
 np.random.seed(1234)  # for reproducibility
+
+# simulation parameters
+simname = 'ens'
+nb_models = 10
+batch_size = 256
+nb_epoch = 2
+n_folds = 3
+lays = [1024]*4  # layer_sizes
 
 print("Loading data...")
 X, labels = load_data('../data/train.csv', train=True)
@@ -42,90 +48,27 @@ y, encoder = preprocess_labels(labels)
 
 dims = X.shape[1]
 nb_classes = y.shape[1]
-nb_models = 4
-
-# simulation parameters
-batch_size = 256
-nb_epoch = 2
-n_folds = 3
 
 params = {"nb_classes": 9, "dims": dims,
-          "layer_size": [512, 512, 512, 512],
+          "layer_size": lays,
           "opt": "adagrad", "sgd_lr": 0.1, "sgd_decay": 0.1,
           "sgd_mom": 0.9, "sgd_nesterov": False,
           "activation_func": "relu",
           "weight_ini": "glorot_uniform",
           "batchnorm": True, "prelu": True,
-          "dropout_rate": [0.4, 0.4, 0.4, 0.4],
+          "dropout_rate": [0.5, 0.5, 0.5, 0.5],
           "input_dropout": 0.2,
           "reg": [1e-5, 1e-5],
           "max_constraint": False}
 
-
-def keras_cv(simname, simnum, params, n_folds, X, y):
-    """Carry out the k-fold cross validation of the NN with given
-    parameters.
-
-    """
-
-    # number of samples, number of features
-    n, p = X.shape
-
-    # save parametr values
-    f = open('%s/params-%d.txt' % (simname, simnum), 'w')
-    json.dump(params, f)
-    f.close()
-
-    # create cv number of files for cross validation
-    kf = cross_validation.KFold(n, n_folds=n_folds,
-                                shuffle=True,
-                                random_state=1234)
-
-    probas = []
-    ll = []
-    ncv = 0
-    for train_index, test_index in kf:
-        print ("cross-validation: %dth fold..." % ncv)
-
-        X_train, X_test = X[train_index, :], X[test_index, :]
-        y_train, y_test = y[train_index, :], y[test_index, :]
-
-        dims = X_train.shape[1]
-        nb_classes = y_train.shape[1]
-
-        params['dims'] = dims
-        params['nb_classes'] = nb_classes
-
-        print(nb_classes, 'classes')
-        print(dims, 'dims')
-        print("Fitting the model on train set...")
-        model = build_keras_model(**params)
-        model.fit(X_train, y_train,
-                  nb_epoch=nb_epoch,
-                  batch_size=batch_size,
-                  validation_split=0.0)
-
-        log_train = model.log_train
-        log_valid = model.log_validation
-
-        print("Predicting on test set...")
-        proba = model.predict_proba(X_test, batch_size=batch_size, verbose=1)
-        probas.append(proba)
-
-        ll.append(calc_ll_from_proba(proba, y_test))
-
-        np.savetxt('%s/proba-%d-%d.log' % (simname, simnum, ncv), proba)
-        ncv += 1
-
-    np.savetxt('%s/ll-%d.txt' % (simname, simnum), np.array(ll))
-    return probas
-
-
 # Create and fit NN four times
 res_proba = []
 for i in range(nb_models):
+    print("######################################################")
+    print("Model #: %d" %i)
+    
     # i: simnum
-    res_proba.append(keras_cv('test', i, params, n_folds, X, y))
+    res_proba.append(keras_cv(simname, i, params, X, y, n_folds, nb_epoch, batch_size))
 
 # number of samples, number of features
 n, p = X.shape
