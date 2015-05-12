@@ -41,4 +41,5 @@ params = {"nb_classes": 9, "dims": dims,
 
 # K-fold cross validation on the Baggin NN model
 probas, lls = keras_bagging(simname, 0, params, X, y, n_folds,
-                            nb_epoch, batch_size, max_samples=0.85)
+                            nb_epoch, batch_size, max_samples=0.85,
+                            n_estimators=5)

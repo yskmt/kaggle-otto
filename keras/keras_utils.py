@@ -233,7 +233,7 @@ def keras_cv(simname, simnum, params, X, y,
 
 def keras_bagging(simname, simnum, params, X, y, n_folds=3,
                   nb_epoch=1000, batch_size=256, vb=2,
-                  max_samples=0.5):
+                  max_samples=0.5, n_estimators=5):
     """Carry out the k-fold cross validation of the NN with given
     parameters with bagging.
 
@@ -278,7 +278,7 @@ def keras_bagging(simname, simnum, params, X, y, n_folds=3,
         print("Fitting the model on train set...")
         model = keras_wrapper(nb_epoch=nb_epoch, **params)
 
-        bagg = BaggingClassifier(model, n_estimators=5,
+        bagg = BaggingClassifier(model, n_estimators=n_estimators,
                                  max_samples=max_samples, bootstrap=True,
                                  bootstrap_features=False,
                                  oob_score=True, n_jobs=1,
