@@ -15,12 +15,12 @@
 
 ## Best so far
 
-5: 0.455
+'dg8/ll-2.txt'
+0.44769382476806641
 
-{'opt': 'adagrad', 'dropout_rate': [0.4, 0.4, 0.4], 'W_reg': <function
-l2wrap at 0x7f2841edc0c8>, 'nb_classes': 9, 'b_reg': <function l2wrap
-at 0x7f2841edc140>, 'activation_func': 'relu', 'layer_size':
-[1024, 1024, 1024], 'sgd_mom': 0.9, 'sgd_decay': 0.1, 'weight_ini':
-'glorot_uniform', 'input_dropout': 0.2, 'sgd_nesterov': False,
-'batchnorm': True, 'sgd_lr': 0.1, 'max_constraint': False, 'prelu':
-True}
+{'opt': 'adagrad', 'dropout_rate': [0.5, 0.5, 0.5, 0.5],
+'sgd_nesterov': False, 'activation_func': 'relu', 'nb_classes': 9,
+'reg': [1e-05, 1e-05], 'sgd_mom': 0.9, 'dims': 93, 'sgd_d ecay': 0.1,
+'weight_ini': 'glorot_uniform', 'input_dropout': 0.2, 'layer_size':
+[1024, 1024, 1024, 1024], 'batchnorm': True, 'sgd_lr': 0.1,
+'max_constraint': False, 'prelu': True}
