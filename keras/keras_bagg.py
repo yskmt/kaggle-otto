@@ -16,9 +16,9 @@ np.random.seed(1234)  # for reproducibility
 # simulation parameters
 simname = 'bagg'
 batch_size = 16
-nb_epoch = 40
+nb_epoch = 100
 n_folds = 4
-lays = [512, 512, 512]  # layer_sizes
+lays = [1024, 1024, 1024, 1024]  # layer_sizes
 
 print("Loading data...")
 X, labels = load_data('../data/train.csv', train=True)
@@ -30,13 +30,12 @@ nb_classes = max(y) + 1
 
 params = {"nb_classes": 9, "dims": dims,
           "layer_size": lays,
-          "opt": "adagrad", "sgd_lr": 0.1, "sgd_decay": 0.1,
-          "sgd_mom": 0.9, "sgd_nesterov": False,
+          "opt": "adagrad",
           "activation_func": "relu",
           "weight_ini": "glorot_uniform",
           "batchnorm": True, "prelu": True,
-          "dropout_rate": [0.5, 0.5, 0.5],
-          "input_dropout": 0.1,
+          "dropout_rate": [0.5, 0.5, 0.5, 0.5],
+          "input_dropout": 0.2,
           "reg": [1e-5, 1e-5],
           "max_constraint": False}
 
