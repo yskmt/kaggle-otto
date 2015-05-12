@@ -35,9 +35,9 @@ np.random.seed(1234)  # for reproducibility
 
 # simulation parameters
 simname = 'ens'
-nb_models = 10
+nb_models = 5
 batch_size = 256
-nb_epoch = 2
+nb_epoch = 1000
 n_folds = 3
 lays = [1024]*4  # layer_sizes
 

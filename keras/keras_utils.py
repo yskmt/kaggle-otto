@@ -103,7 +103,7 @@ def build_keras_model(layer_size, dropout_rate, nb_classes, dims,
                       max_constraint=False, input_dropout=0.0):
 
     model = Sequential()
-    model.early_stopping = 100
+    model.early_stopping = 10000000
     nb_layers = len(layer_size)
 
     # initial dropout
@@ -194,11 +194,16 @@ def keras_cv(simname, simnum, params, X, y,
         print(dims, 'dims')
         print("Fitting the model on train set...")
         model = build_keras_model(**params)
-        model.fit(X_train, y_train,
-                  nb_epoch=nb_epoch,
-                  batch_size=batch_size,
-                  validation_split=0.0, verbose=vb)
 
+        # save weights 10 times
+        epoch_step = int(nb_epoch/10)
+        for fi in range(0, nb_epoch, epoch_step):
+            model.fit(X_train, y_train,
+                      nb_epoch=epoch_step,
+                      batch_size=batch_size,
+                      validation_split=0.0, verbose=vb)
+            model.save_weights("%s/weights-%d-%d-%d.hdf5" %(simname, simnum, ncv, fi))
+            
         log_train = model.log_train
         log_valid = model.log_validation
 
