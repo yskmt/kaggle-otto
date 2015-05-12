@@ -37,7 +37,7 @@ np.random.seed(1234)  # for reproducibility
 simname = 'ens'
 nb_models = 5
 batch_size = 256
-nb_epoch = 1000
+nb_epoch = 2000
 n_folds = 3
 lays = [1024]*4  # layer_sizes
 
@@ -55,7 +55,7 @@ params = {"nb_classes": 9, "dims": dims,
           "sgd_mom": 0.9, "sgd_nesterov": False,
           "activation_func": "relu",
           "weight_ini": "glorot_uniform",
-          "batchnorm": True, "prelu": True,
+          "batchnorm": False, "prelu": False,
           "dropout_rate": [0.5, 0.5, 0.5, 0.5],
           "input_dropout": 0.2,
           "reg": [1e-5, 1e-5],
