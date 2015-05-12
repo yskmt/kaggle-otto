@@ -203,10 +203,12 @@ def keras_cv(simname, simnum, params, X, y,
                       batch_size=batch_size,
                       validation_split=0.1, verbose=vb)
             model.save_weights("%s/weights-%d-%d-%d.hdf5" %(simname, simnum, ncv, fi))
+            log_train = model.log_train
+            log_valid = model.log_validation
+            # early stopping
+            if log_valid[-1] > log_valid[-1-epoch_step/2]:
+                break
             
-        log_train = model.log_train
-        log_valid = model.log_validation
-
         print("Predicting on test set...")
         proba = model.predict_proba(X_test, batch_size=batch_size, verbose=1)
         probas.append(proba)
