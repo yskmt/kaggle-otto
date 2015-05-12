@@ -4,6 +4,7 @@ from __future__ import print_function
 import numpy as np
 import pandas as pd
 from time import time
+import json
 
 import keras
 from keras.models import Sequential
@@ -151,3 +152,65 @@ def build_keras_model(layer_size, dropout_rate, nb_classes, dims,
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
     return model
+
+
+
+def keras_cv(simname, simnum, params, X, y,
+             n_folds=3, nb_epoch=1000, batch_size=256, vb=2):
+    """Carry out the k-fold cross validation of the NN with given
+    parameters.
+
+    """
+
+    # number of samples, number of features
+    n, p = X.shape
+
+    # save parametr values
+    f = open('%s/params-%d.txt' % (simname, simnum), 'w')
+    json.dump(params, f)
+    f.close()
+
+    # create cv number of files for cross validation
+    kf = cross_validation.KFold(n, n_folds=n_folds,
+                                shuffle=True,
+                                random_state=1234)
+
+    probas = []
+    ll = []
+    ncv = 0
+    for train_index, test_index in kf:
+        print ("cross-validation: %dth fold..." % ncv)
+
+        X_train, X_test = X[train_index, :], X[test_index, :]
+        y_train, y_test = y[train_index, :], y[test_index, :]
+
+        dims = X_train.shape[1]
+        nb_classes = y_train.shape[1]
+
+        params['dims'] = dims
+        params['nb_classes'] = nb_classes
+
+        print(nb_classes, 'classes')
+        print(dims, 'dims')
+        print("Fitting the model on train set...")
+        model = build_keras_model(**params)
+        model.fit(X_train, y_train,
+                  nb_epoch=nb_epoch,
+                  batch_size=batch_size,
+                  validation_split=0.0, verbose=vb)
+
+        log_train = model.log_train
+        log_valid = model.log_validation
+
+        print("Predicting on test set...")
+        proba = model.predict_proba(X_test, batch_size=batch_size, verbose=1)
+        probas.append(proba)
+
+        ll.append(calc_ll_from_proba(proba, y_test))
+
+        np.savetxt('%s/proba-%d-%d.log' % (simname, simnum, ncv), proba)
+        ncv += 1
+
+    np.savetxt('%s/ll-%d.txt' % (simname, simnum), np.array(ll))
+    return probas
+
