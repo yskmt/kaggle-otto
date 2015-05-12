@@ -15,10 +15,10 @@ np.random.seed(1234)  # for reproducibility
 
 # simulation parameters
 simname = 'bagg'
-batch_size = 256
-nb_epoch = 10
+batch_size = 16
+nb_epoch = 40
 n_folds = 4
-lays = [100] * 4  # layer_sizes
+lays = [512, 512, 512]  # layer_sizes
 
 print("Loading data...")
 X, labels = load_data('../data/train.csv', train=True)
@@ -34,12 +34,12 @@ params = {"nb_classes": 9, "dims": dims,
           "sgd_mom": 0.9, "sgd_nesterov": False,
           "activation_func": "relu",
           "weight_ini": "glorot_uniform",
-          "batchnorm": False, "prelu": False,
-          "dropout_rate": [0.5, 0.5, 0.5, 0.5],
-          "input_dropout": 0.2,
+          "batchnorm": True, "prelu": True,
+          "dropout_rate": [0.5, 0.5, 0.5],
+          "input_dropout": 0.1,
           "reg": [1e-5, 1e-5],
           "max_constraint": False}
 
 # K-fold cross validation on the Baggin NN model
 probas, lls = keras_bagging(simname, 0, params, X, y, n_folds,
-                            nb_epoch, batch_size)
+                            nb_epoch, batch_size, max_samples=0.85)

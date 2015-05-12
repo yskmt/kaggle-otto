@@ -16,7 +16,7 @@ from keras.layers.advanced_activations import PReLU
 from keras.utils import np_utils, generic_utils
 from keras.regularizers import l2
 from keras.constraints import maxnorm
-from keras.optimizers import Adadelta
+from keras.optimizers import Adadelta, SGD
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
@@ -107,10 +107,8 @@ def make_submission(y_prob, ids, encoder, fname):
 
 def build_keras_model(layer_size, dropout_rate, nb_classes, dims,
                       prelu=False, batchnorm=False, opt='sgd',
-                      sgd_lr=0.01, sgd_mom=0.9, sgd_decay=0.0,
-                      sgd_nesterov=True, activation_func='tanh',
-                      weight_ini='glorot_uniform',
-                      reg=[None, None],
+                      activation_func='tanh',
+                      weight_ini='glorot_uniform', reg=[None, None],
                       max_constraint=False, input_dropout=0.0):
 
     model = Sequential()
@@ -233,8 +231,9 @@ def keras_cv(simname, simnum, params, X, y,
     return probas
 
 
-def keras_bagging(simname, simnum, params, X, y,
-                  n_folds=3, nb_epoch=1000, batch_size=256, vb=2):
+def keras_bagging(simname, simnum, params, X, y, n_folds=3,
+                  nb_epoch=1000, batch_size=256, vb=2,
+                  max_samples=0.5):
     """Carry out the k-fold cross validation of the NN with given
     parameters with bagging.
 
@@ -242,7 +241,7 @@ def keras_bagging(simname, simnum, params, X, y,
     * Uses keras_wrapper class to make it compatible with     
     * NOTE: dimensionality of y is different from what kearas uses.
     y is a vector with corresponding labels (0 to nb_classes-1) 
-    
+
 
     """
 
@@ -269,7 +268,7 @@ def keras_bagging(simname, simnum, params, X, y,
         y_train, y_test = y[train_index], y[test_index]
 
         dims = X_train.shape[1]
-        nb_classes = max(y_train)+1
+        nb_classes = max(y_train) + 1
 
         params['dims'] = dims
         params['nb_classes'] = nb_classes
@@ -280,7 +279,7 @@ def keras_bagging(simname, simnum, params, X, y,
         model = keras_wrapper(nb_epoch=nb_epoch, **params)
 
         bagg = BaggingClassifier(model, n_estimators=5,
-                                 max_samples=0.5, bootstrap=True,
+                                 max_samples=max_samples, bootstrap=True,
                                  bootstrap_features=False,
                                  oob_score=True, n_jobs=1,
                                  random_state=1234, verbose=1)
@@ -299,15 +298,14 @@ def keras_bagging(simname, simnum, params, X, y,
 
 
 class keras_wrapper(BaseEstimator, ClassifierMixin):
+
     """Wrapper function around keras to make it compatible with
     scikit-learn.
 
     """
 
-    
     def __init__(self, layer_size, dropout_rate, nb_classes, dims,
-                 prelu=False, batchnorm=False, opt='sgd', sgd_lr=0.01,
-                 sgd_mom=0.9, sgd_decay=0.0, sgd_nesterov=True,
+                 prelu=False, batchnorm=False, opt='sgd',
                  activation_func='tanh', weight_ini='glorot_uniform',
                  reg=[None, None], max_constraint=False,
                  input_dropout=0.0, nb_epoch=1000, batch_size=256,
@@ -317,10 +315,6 @@ class keras_wrapper(BaseEstimator, ClassifierMixin):
         self.dims = dims
         self.layer_size = layer_size
         self.opt = opt
-        self.sgd_lr = sgd_lr
-        self.sgd_decay = sgd_decay
-        self.sgd_mom = sgd_mom
-        self.sgd_nesterov = sgd_nesterov
         self.activation_func = activation_func
         self.weight_ini = weight_ini
         self.batchnorm = batchnorm
@@ -333,31 +327,26 @@ class keras_wrapper(BaseEstimator, ClassifierMixin):
         self.batch_size = batch_size
         self.validation_split = validation_split
         self.verbose = verbose
-        
-        self.build_keras_model(layer_size=layer_size,
-                               dropout_rate=dropout_rate,
-                               nb_classes=nb_classes,
-                               dims=dims,
-                               prelu=prelu,
-                               batchnorm=batchnorm,
-                               opt=opt,
-                               sgd_lr=sgd_lr,
-                               sgd_mom=sgd_mom,
-                               sgd_decay=sgd_decay,
-                               sgd_nesterov=sgd_nesterov,
-                               activation_func=activation_func,
-                               weight_ini=weight_ini,
-                               reg=reg,
-                               max_constraint=max_constraint,
-                               input_dropout=input_dropout)
 
-    def build_keras_model(self, layer_size, dropout_rate, nb_classes, dims,
-                          prelu=False, batchnorm=False, opt='sgd',
-                          sgd_lr=0.01, sgd_mom=0.9, sgd_decay=0.0,
-                          sgd_nesterov=True, activation_func='tanh',
-                          weight_ini='glorot_uniform',
-                          reg=[None, None],
-                          max_constraint=False, input_dropout=0.0):
+        self._build_keras_model(layer_size=layer_size,
+                                dropout_rate=dropout_rate,
+                                nb_classes=nb_classes,
+                                dims=dims,
+                                prelu=prelu,
+                                batchnorm=batchnorm,
+                                opt=opt,
+                                activation_func=activation_func,
+                                weight_ini=weight_ini,
+                                reg=reg,
+                                max_constraint=max_constraint,
+                                input_dropout=input_dropout)
+
+    def _build_keras_model(self, layer_size, dropout_rate, nb_classes, dims,
+                           prelu=False, batchnorm=False, opt='sgd',
+                           activation_func='tanh',
+                           weight_ini='glorot_uniform',
+                           reg=[None, None],
+                           max_constraint=False, input_dropout=0.0):
 
         self.model = Sequential()
         self.model.early_stopping = 100
@@ -397,10 +386,9 @@ class keras_wrapper(BaseEstimator, ClassifierMixin):
         self.model.add(Dense(layer_size[-1], nb_classes, init=weight_ini))
         self.model.add(Activation('softmax'))
 
+        # optimizer can be speicied by strings or directly passing a function
         if opt is 'sgd':
-            optimizer = keras.optimizers.SGD(
-                lr=sgd_lr, momentum=sgd_mom, decay=sgd_decay,
-                nesterov=sgd_nesterov)
+            optimizer = SGD(lr=0.01, momentum=0., decay=0., nesterov=False)
         elif opt is 'adadelta':
             optimizer = Adadelta(lr=1.0, rho=0.99, epsilon=1e-8)
         else:
@@ -416,14 +404,14 @@ class keras_wrapper(BaseEstimator, ClassifierMixin):
 
         # transform y to categorical matrix form
         y = np_utils.to_categorical(y)
-        
+
         self.model.fit(X, y,
                        nb_epoch=self.nb_epoch,
                        batch_size=self.batch_size,
                        validation_split=self.validation_split,
                        verbose=self.verbose)
         return self
-        
+
     def predict_proba(self, X):
         return self.model.predict_proba(
             X, batch_size=self.batch_size, verbose=self.verbose)
