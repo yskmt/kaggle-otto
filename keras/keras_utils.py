@@ -23,6 +23,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import cross_validation
 from sklearn.ensemble import BaggingClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.externals import joblib
 
 pardir = os.path.realpath('..')
 if pardir not in sys.path:
@@ -233,7 +234,7 @@ def keras_cv(simname, simnum, params, X, y,
 
 def keras_bagging(simname, simnum, params, X, y, n_folds=3,
                   nb_epoch=1000, batch_size=256, vb=2,
-                  max_samples=0.5):
+                  max_samples=0.5, n_estimators=30):
     """Carry out the k-fold cross validation of the NN with given
     parameters with bagging.
 
@@ -278,13 +279,14 @@ def keras_bagging(simname, simnum, params, X, y, n_folds=3,
         print("Fitting the model on train set...")
         model = keras_wrapper(nb_epoch=nb_epoch, **params)
 
-        bagg = BaggingClassifier(model, n_estimators=5,
+        bagg = BaggingClassifier(model, n_estimators=n_estimators,
                                  max_samples=max_samples, bootstrap=True,
                                  bootstrap_features=False,
                                  oob_score=True, n_jobs=1,
                                  random_state=1234, verbose=1)
         bagg.fit(X_train, y_train)
-
+        joblib.dump(bagg, '%s/bagg-%d-%d.pkl' %(simname, simnum, ncv)) 
+        
         print("Predicting on test set...")
         proba = bagg.predict_proba(X_test)
         probas.append(proba)

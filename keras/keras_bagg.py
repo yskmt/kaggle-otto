@@ -16,7 +16,7 @@ np.random.seed(1234)  # for reproducibility
 # simulation parameters
 simname = 'bagg'
 batch_size = 16
-nb_epoch = 100
+nb_epoch = 200
 n_folds = 4
 lays = [1024, 1024, 1024, 1024]  # layer_sizes
 
@@ -41,4 +41,5 @@ params = {"nb_classes": 9, "dims": dims,
 
 # K-fold cross validation on the Baggin NN model
 probas, lls = keras_bagging(simname, 0, params, X, y, n_folds,
-                            nb_epoch, batch_size, max_samples=0.85)
+                            nb_epoch, batch_size, max_samples=0.85,
+                            n_estimators=30)
