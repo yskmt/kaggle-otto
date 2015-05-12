@@ -27,6 +27,7 @@ import sys
 
 from sklearn import cross_validation
 from sklearn import metrics
+import numpy as np
 
 from lasagne.layers import DenseLayer
 from lasagne.layers import InputLayer
@@ -66,20 +67,6 @@ layers0 = [('input', InputLayer),
            ('dense1', DenseLayer),
            ('output', DenseLayer)]
 
-net0 = NeuralNet(layers=layers0,
-                 input_shape=(None, num_features),
-                 dense0_num_units=200,
-                 dropout_p=0.5,
-                 dense1_num_units=200,
-                 output_num_units=num_classes,
-                 output_nonlinearity=softmax,
-                 update=nesterov_momentum,
-                 update_learning_rate=0.01,
-                 update_momentum=0.9,
-                 eval_size=0.2,
-                 verbose=1,
-                 max_epochs=20)
-
 ll = []
 ncv = 0
 for train_index, test_index in kf:
@@ -88,9 +75,20 @@ for train_index, test_index in kf:
     X_train, X_test = X[train_index, :], X[test_index, :]
     y_train, y_test = y[train_index], y[test_index]
 
-    # mkdir_p(cv_params['simdir'] + '/data')
-    # np.savetxt(cv_params['simdir'] + '/data/y_test-%d' % ncv, y_test)
-
+    net0 = NeuralNet(layers=layers0,
+                     input_shape=(None, num_features),
+                     dense0_num_units=200,
+                     dropout_p=0.5,
+                     dense1_num_units=200,
+                     output_num_units=num_classes,
+                     output_nonlinearity=softmax,
+                     update=nesterov_momentum,
+                     update_learning_rate=0.01,
+                     update_momentum=0.9,
+                     eval_size=0.2,
+                     verbose=1,
+                     max_epochs=200)
+    
     print "fitting nn model.."
     net0.fit(X_train, y_train)
 
@@ -101,9 +99,12 @@ for train_index, test_index in kf:
     print metrics.confusion_matrix(
         y_test.astype(int), np.argmax(proba, axis=1).astype(int))
 
-    # print "saving svc model..."
-    # joblib.dump(net0, cv_params['simdir'] + '/svc_%d.pkl' % ncv)
-
+    print "logloss: ", ll[ncv]
+    
+    print "saving nn model..."
+    net0.save_weights_to('weights/nn_%d.pkl' % ncv)
+    net0 = None
+    
     ncv += 1
 
 ll = np.array(ll)

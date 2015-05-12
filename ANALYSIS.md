@@ -1,4 +1,4 @@
-
+ 
 # XGB best result
 
 0.444807
@@ -75,6 +75,18 @@ expo2_0.0050000.05
  [   7   52   22    0    4   31  405   19    1]
  [  22   17    2    0    1   33   13 1538   21]
  [  53   14    0    1    3   44    6   34  853]]
+
+
+# Keras best results 
+http://keras.io/optimizers/
+
+0.45346915721893311
+{'opt': 'adagrad', 'dropout_rate': [0.4, 0.4, 0.4], 'sgd_nesterov':
+False, 'activation_func': 'relu', 'nb_classes': 9, 'reg':
+[1e-05, 1e-05], 'sgd_mom': 0.9, 'dims': 93, 'sgd_deay': 0.1,
+'weight_ini': 'glorot_uniform', 'input_dropout': 0.2, 'layer_size':
+[1024, 1024, 1024], 'batchnorm': True, 'sgd_lr': 0.1,
+'max_constraint': False, 'prelu': True}
 
 
 # Model mixing

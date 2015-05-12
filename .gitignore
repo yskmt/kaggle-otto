@@ -1,3 +1,7 @@
 rgf/expo*
 rgf/kfcv*
 *.pyc
+*~
+*.csv
+
+data
