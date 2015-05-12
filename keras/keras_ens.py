@@ -129,14 +129,14 @@ for i in range(nb_models):
 
 # number of samples, number of features
 n, p = X.shape
-    
+
 # create cv number of files for cross validation
 kf = cross_validation.KFold(n, n_folds=n_folds,
                             shuffle=True,
                             random_state=1234)
 
 ncv = 0
-ll_each = np.zeros((nb_models,1))
+ll_each = np.zeros((nb_models, 1))
 ll_ens = []
 for train_index, test_index in kf:
     print ("cross-validation: %dth fold..." % ncv)
@@ -155,12 +155,12 @@ for train_index, test_index in kf:
         ens_proba += np.array(res_proba[i][ncv])
 
     ens_proba /= nb_models
-    ll_ens.append( calc_ll_from_proba(ens_proba, y_test))
+    ll_ens.append(calc_ll_from_proba(ens_proba, y_test))
     print(ll_ens[ncv])
 
     # save the ensamble resutls
     np.savetxt('%s/proba-ens-%d.log' % (simname, ncv), ens_proba)
-    
+
     ncv += 1
 
 np.savetxt('%s/ll-ens.txt' % (simname), np.array(ll_ens))
