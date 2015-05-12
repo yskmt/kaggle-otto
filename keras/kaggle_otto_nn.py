@@ -3,9 +3,7 @@ from __future__ import print_function
 
 import numpy as np
 import pandas as pd
-from time import time
 
-import keras
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.normalization import BatchNormalization
@@ -15,40 +13,39 @@ from keras.regularizers import l2
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
-from sklearn.grid_search import ParameterSampler
-from sklearn import cross_validation
 
+'''
+    This demonstrates how to reach a score of 0.4890 (local validation)
+    on the Kaggle Otto challenge, with a deep net using Keras.
 
-# np.random.seed(1337) # for reproducibility
-np.random.seed(int(time()))  # for reproducibility
+    Compatible Python 2.7-3.4 
 
+    Recommended to run on GPU: 
+        Command: THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python kaggle_otto_nn.py
+        On EC2 g2.2xlarge instance: 19s/epoch. 6-7 minutes total training time.
 
-def calc_ll_from_proba(label_proba, label_true, eps=1e-15):
-    """
-    Calculate the logloss from the probability matrix.
-    """
+    Best validation score at epoch 21: 0.4881 
 
-    # create a probability matrix for test labels (1s and 0s)
-    N, m = label_proba.shape
+    Try it at home:
+        - with/without BatchNormalization (BatchNormalization helps!)
+        - with ReLU or with PReLU (PReLU helps!)
+        - with smaller layers, largers layers
+        - with more layers, less layers
+        - with different optimizers (SGD+momentum+decay is probably better than Adam!)
+'''
 
-    logloss = -np.sum(
-        label_true * np.log(
-            np.maximum(np.minimum(label_proba, 1 - 1e-15), 1e-15))) / N
-
-    return logloss
-
+np.random.seed(1337) # for reproducibility
 
 def load_data(path, train=True):
     df = pd.read_csv(path)
     X = df.values.copy()
     if train:
-        np.random.shuffle(X)  # https://youtu.be/uyUXoap67N8
+        np.random.shuffle(X) # https://youtu.be/uyUXoap67N8
         X, labels = X[:, 1:-1].astype(np.float32), X[:, -1]
         return X, labels
     else:
         X, ids = X[:, 1:].astype(np.float32), X[:, 0].astype(str)
         return X, ids
-
 
 def preprocess_data(X, scaler=None):
     if not scaler:
@@ -56,7 +53,6 @@ def preprocess_data(X, scaler=None):
         scaler.fit(X)
     X = scaler.transform(X)
     return X, scaler
-
 
 def preprocess_labels(y, encoder=None, categorical=True):
     if not encoder:
@@ -66,7 +62,6 @@ def preprocess_labels(y, encoder=None, categorical=True):
     if categorical:
         y = np_utils.to_categorical(y)
     return y, encoder
-
 
 def make_submission(y_prob, ids, encoder, fname):
     with open(fname, 'w') as f:
@@ -81,178 +76,55 @@ def make_submission(y_prob, ids, encoder, fname):
 
 
 print("Loading data...")
-X, labels = load_data('../data/train.csv', train=True)
+X, labels = load_data('train.csv', train=True)
 X, scaler = preprocess_data(X)
 y, encoder = preprocess_labels(labels)
 
+X_test, ids = load_data('test.csv', train=False)
+X_test, _ = preprocess_data(X_test, scaler)
 
 nb_classes = y.shape[1]
+print(nb_classes, 'classes')
 
-# X_test, ids = load_data('../data/test.csv', train=False)
-# X_test, _ = preprocess_data(X_test, scaler)
+dims = X.shape[1]
+print(dims, 'dims')
 
+print("Building model...")
 
-# create cv number of files for cross validation
-n_folds = 5
-n_samples = X.shape[0]
-kf = cross_validation.KFold(n_samples, n_folds=n_folds,
-                            shuffle=True,
-                            random_state=1234)
+model = Sequential()
+model.add(Dropout(0.05))
 
+l2_reg = 1e-5
 
-def softsign(x):
-    return x / (1 + abs(x))
+model.add(Dense(dims, 1024, init='glorot_uniform', activation='relu',
+                W_regularizer=l2(l2_reg), b_regularizer=l2(l2_reg)))
+model.add(PReLU((1024,)))
+model.add(BatchNormalization((1024,)))
+model.add(Dropout(0.5))
 
+model.add(Dense(1024, 1024, init='glorot_uniform', activation='relu',
+                W_regularizer=l2(l2_reg), b_regularizer=l2(l2_reg)))
+model.add(PReLU((1024,)))
+model.add(BatchNormalization((1024,)))
+model.add(Dropout(0.5))
 
-def build_keras_model(nb_layers, layer_size, dropout_rate, nb_classes,
-                      prelu=False, batchnorm=False, opt='sgd',
-                      sgd_lr=0.01, sgd_mom=0.9, sgd_decay=0.0,
-                      sgd_nesterov=True, activation_func='tanh',
-                      weight_ini='glorot_uniform', l2_reg=0.0):
+model.add(Dense(1024, 1024, init='glorot_uniform', activation='relu',
+                W_regularizer=l2(l2_reg), b_regularizer=l2(l2_reg)))
+model.add(PReLU((1024,)))
+model.add(BatchNormalization((1024,)))
+model.add(Dropout(0.5))
 
-    model = Sequential()
-    model.early_stopping = 5
-    
-    # input layer
-    if l2_reg > 0.0:
-        model.add(Dense(dims, layer_size,
-                        init=weight_ini, activation=activation_func))
-    else:
-        model.add(Dense(dims, layer_size,
-                        init=weight_ini, activation=activation_func))
+model.add(Dense(1024, nb_classes, init='glorot_uniform'))
+model.add(Activation('softmax'))
 
-    # hidden layers
-    for i in range(nb_layers):
-
-        if l2_reg > 0.0:
-            model.add(Dense(layer_size, layer_size,
-                            init=weight_ini, activation=activation_func,
-                            W_regularizer=l2(l2_reg)))
-        else:
-            model.add(Dense(layer_size, layer_size,
-                            init=weight_ini, activation=activation_func))
-
-        if prelu is True:
-            model.add(PReLU((layer_size,)))
-
-        if batchnorm is True:
-            model.add(BatchNormalization((layer_size,)))
-
-        if dropout_rate > 0.0:
-            model.add(Dropout(dropout_rate))
-
-    # output layer
-    model.add(Dense(layer_size, nb_classes, init=weight_ini))
-    model.add(Activation('softmax'))
-
-    if opt is 'sgd':
-        optimizer = keras.optimizers.SGD(
-            lr=sgd_lr, momentum=sgd_mom, decay=sgd_decay,
-            nesterov=sgd_nesterov)
-    elif opt is 'adam':
-        optimizer = 'adam'
-
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer)
-
-    return model
-
+model.compile(loss='categorical_crossentropy', optimizer="adam")
 
 print("Training model...")
 
+model.fit(X, y, nb_epoch=100, batch_size=2000, validation_split=0.15)
 
-batch_size = 16
-nb_epoch = 100
+print("Generating submission...")
 
-# param_dist = {
-#     'nb_layers': [3],
-#     'layer_size': [512],
-#     'dropout_rate': [0.5],
-#     # 'prelu': [True, False],
-#     'prelu': [True],
-#     # 'batchnorm': [True, False],
-#     'batchnorm': [True],
-#     'opt': ['sgd'],
-#     'sgd_lr': [0.01],
-#     'sgd_mom': [0.9],
-#     'sgd_decay': [0.0],
-#     # 'sgd_nesterov': [True, False],
-#     'sgd_nesterov': [True],
-#     # 'activation_func': ['tanh'],
-#     'activation_func': [softsign],
-#     'weight_ini': ['glorot_uniform'],
-#     'l2_reg': [0.0],
-#     'nb_classes': [nb_classes]
-# }
+proba = model.predict_proba(X_test)
+make_submission(proba, ids, encoder, fname='keras-otto.csv')
 
-param_dist = {
-    'nb_layers': [2, 4, 6, 8],
-    'layer_size': [64, 128, 256, 512, 1024],
-    'dropout_rate': [0.0, 0.25, 0.5],
-    'prelu': [True, False],
-    # 'prelu': [False],
-    'batchnorm': [True, False],
-    # 'batchnorm': [False],
-    'opt': ['sgd'],
-    'sgd_lr': [0.01],
-    'sgd_mom': [0.9],
-    'sgd_decay': [0.0],
-    # 'sgd_nesterov': [True, False],
-    'sgd_nesterov': [True],
-    'activation_func': ['tanh'],
-    'weight_ini': ['glorot_uniform'],
-    'l2_reg': [0.0],
-    'nb_classes': [nb_classes]
-}
-
-nb_search = 240
-
-param_list = list(ParameterSampler(param_dist, n_iter=nb_search))
-param_dict = [dict((k, v) for (k, v) in d.items()) for d in param_list]
-
-with open('log/params.txt', 'w') as f:
-    f.write(str(param_dict))
-
-for i in range(nb_search):
-    print('%d-th iteration...' % i)
-
-    f = open('log/params-%d.txt' % i, 'w')
-    f.write(str(param_dict[i]))
-    f.close()
-    print(param_dict[i])
-
-    ncv = 0
-    ll = []
-    first = 0
-    for train_index, test_index in kf:
-        print("cross-validation: %dth fold..." % ncv)
-
-        X_train, X_test = X[train_index, :], X[test_index, :]
-        y_train, y_test = y[train_index], y[test_index]
-
-        nb_classes = y_train.shape[1]
-        print(nb_classes, 'classes')
-
-        dims = X_train.shape[1]
-        print(dims, 'dims')
-
-        print("Building model...")
-        model = build_keras_model(**param_dict[i])
-
-        model.fit(X_train, y_train, nb_epoch=nb_epoch,
-                  batch_size=batch_size,
-                  validation_split=0.15)
-
-        # proba = model.predict_proba(X_test)
-        # ll.append(calc_ll_from_proba(proba, y_test))
-
-        log_train = model.log_train
-        log_valid = model.log_validation
-
-        if first == 0:
-            break
-
-    print('minimum validation ll: %f at %d'
-          % (np.min(log_valid), np.argmin(log_valid)))
-
-    np.savetxt('log/ll-%d.txt' % i,
-               np.array([model.log_train, model.log_validation]).T)
