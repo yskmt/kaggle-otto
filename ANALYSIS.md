@@ -23,6 +23,7 @@ xgb3.e74518
 
 # RGF best result
 
+* directory name: nts
 Expo L2: 0.05, sL2: 0.005
 expo2_0.0050000.05
 [[ 0.53798638  0.00422792]
@@ -88,6 +89,12 @@ False, 'activation_func': 'relu', 'nb_classes': 9, 'reg':
 [1024, 1024, 1024], 'batchnorm': True, 'sgd_lr': 0.1,
 'max_constraint': False, 'prelu': True}
 
+* keras: 96-512-512-512-9 achieves 0.4881(?)
+  * PReLu+BatchNormalization
+  * Dropout=0.5
+  * batch_size=16
+  * validation_split=0.15
+  * nb_epoch=30
 
 # Model mixing
 
